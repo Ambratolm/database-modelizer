@@ -15,5 +15,10 @@ namespace SampleClient
 
         [Column("birth_date")]
         public object BirthDate { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("#{0} {1} ({2}) {3}", Id, Name, Gender, BirthDate);
+        }
     }
 }

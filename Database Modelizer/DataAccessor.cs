@@ -3,6 +3,9 @@ using System.Data.Common;
 
 namespace DatabaseModelizer
 {
+    /// <summary>
+    /// Allows access to a database.
+    /// </summary>
     public class DataAccessor
     {
         public string ConnectionString { get; set; }
@@ -13,9 +16,6 @@ namespace DatabaseModelizer
             this.ConnectionString = connectionString;
             this.Provider = provider == null ? DataProvider.Sql : provider;
         }
-
-        #region Private-Methods
-        #endregion
 
         public DataTable GetTable(string commandText, string tableName)
         {

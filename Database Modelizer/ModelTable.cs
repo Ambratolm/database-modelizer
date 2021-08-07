@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace DatabaseModelizer
 {
+    /// <summary>
+    /// Allows querying a table in a database through a DataAccessor.
+    /// </summary>
+    /// <typeparam name="TModel">Type of the Model representing the table.</typeparam>
     public class ModelTable<TModel> where TModel : Model
     {
         private string _selectCommandText;
@@ -57,7 +61,7 @@ namespace DatabaseModelizer
         {
             this.Name = name;
             this.DataAccessor = dataAccessor;
-            _selectCommandText = string.IsNullOrEmpty(selectCommandText)
+            _selectCommandText = string.IsNullOrWhiteSpace(selectCommandText)
                 ? string.Format("SELECT * FROM {0}", this.Name)
                 : selectCommandText;
             PullFromDatabase();
@@ -76,21 +80,21 @@ namespace DatabaseModelizer
 
         private DataTable ConvertToDataTable(List<TModel> models)
         {
-            if (models.Count == 0)
-            {
-                return null;
-            }
             DataTable table = new DataTable(Name);
-            foreach (string columnName in models[0].GetColumnsNames())
+            if (models.Count != 0)
             {
-                table.Columns.Add(columnName);
-            }
-            foreach (TModel model in models)
-            {
-                DataRow row = table.NewRow();
-                foreach (Field field in model.GetFields())
+                foreach (string columnName in models[0].GetColumnsNames())
                 {
-                    row[field.ColumnName] = field.Value;
+                    table.Columns.Add(columnName);
+                }
+                foreach (TModel model in models)
+                {
+                    DataRow row = table.NewRow();
+                    foreach (Field field in model.GetFields())
+                    {
+                        row[field.ColumnName] = field.Value;
+                    }
+                    table.Rows.Add(row);
                 }
             }
             return table;
@@ -98,20 +102,20 @@ namespace DatabaseModelizer
 
         private List<TModel> ConvertToList(DataTable table)
         {
-            if (table.Rows.Count == 0)
-            {
-                return null;
-            }
             List<TModel> modelsList = new List<TModel>();
-            foreach (DataRow row in table.Rows)
+            if (table.Rows.Count != 0)
             {
-                TModel model = default(TModel);
-                foreach (Field field in model.GetFields())
+                foreach (DataRow row in table.Rows)
                 {
-                    if (table.Columns.Contains(field.ColumnName))
+                    TModel model = Activator.CreateInstance<TModel>();
+                    foreach (Field field in model.GetFields())
                     {
-                        model.SetProperty(field.PropertyName, row[field.ColumnName]);
+                        if (table.Columns.Contains(field.ColumnName))
+                        {
+                            model.SetProperty(field.PropertyName, row[field.ColumnName]);
+                        }
                     }
+                    modelsList.Add(model);
                 }
             }
             return modelsList;
